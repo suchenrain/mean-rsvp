@@ -3,6 +3,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BrowserModule, Title } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { AuthService } from './auth/auth.service';
@@ -14,7 +15,12 @@ import { FooterComponent } from './footer/footer.component';
 import { HeaderComponent } from './header/header.component';
 import { AdminComponent } from './pages/admin/admin.component';
 import { CallbackComponent } from './pages/callback/callback.component';
+import { EventDetailComponent } from './pages/event/event-detail/event-detail.component';
+import { EventComponent } from './pages/event/event.component';
+import { RsvpComponent } from './pages/event/rsvp/rsvp.component';
 import { HomeComponent } from './pages/home/home.component';
+import { RsvpFormComponent } from './pages/event/rsvp/rsvp-form/rsvp-form.component';
+import { SubmittingComponent } from './core/forms/submitting.component';
 
 @NgModule({
   declarations: [
@@ -24,9 +30,20 @@ import { HomeComponent } from './pages/home/home.component';
     FooterComponent,
     CallbackComponent,
     LoadingComponent,
-    AdminComponent
+    AdminComponent,
+    EventComponent,
+    EventDetailComponent,
+    RsvpComponent,
+    RsvpFormComponent,
+    SubmittingComponent
   ],
-  imports: [BrowserModule, FormsModule, AppRoutingModule, HttpClientModule],
+  imports: [
+    BrowserModule,
+    FormsModule,
+    AppRoutingModule,
+    HttpClientModule,
+    BrowserAnimationsModule
+  ],
   providers: [
     Title,
     AuthService,

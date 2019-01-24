@@ -3,17 +3,14 @@ import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angul
 import { Observable } from 'rxjs';
 import { AuthService } from './auth.service';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable()
 export class AuthGuard implements CanActivate {
-
-  constructor(private auth: AuthService) { }
+  constructor(private auth: AuthService) {}
 
   canActivate(
     next: ActivatedRouteSnapshot,
-    state: RouterStateSnapshot): Observable<boolean> | Promise<boolean> | boolean {
-
+    state: RouterStateSnapshot
+  ): Observable<boolean> | Promise<boolean> | boolean {
     if (!this.auth.loggedIn) {
       localStorage.setItem('authRedirect', state.url);
     }

@@ -1,10 +1,9 @@
 import { Injectable } from '@angular/core';
-import { DatePipe } from "@angular/common";
+import { DatePipe } from '@angular/common';
 
 @Injectable()
 export class FilterSortService {
-
-  constructor(private datePipe: DatePipe) { }
+  constructor(private datePipe: DatePipe) {}
 
   /**
    * Checks if the first item in the array is an object
@@ -20,11 +19,20 @@ export class FilterSortService {
     // models that don't match {[key: string]: any}[]
     // This check prevents uncaught reference errors
     const item0 = array[0];
-    const check = !!(array.length && item0 != null && Object.prototype.toString.call(item0) === '[object Object]');
+    const check = !!(
+      array.length &&
+      item0 != null &&
+      Object.prototype.toString.call(item0) === '[object Object]'
+    );
     return check;
   }
 
-  search(array: any[], query: string, excludeProps?: string | string[], dateFormat?: string) {
+  search(
+    array: any[],
+    query: string,
+    excludeProps?: string | string[],
+    dateFormat?: string
+  ) {
     // Match query to strings and Date objects / ISO UTC strings
     // Optionally exclude properties from being searched
     // If matching dates, can optionally pass in date format string
@@ -41,14 +49,22 @@ export class FilterSortService {
           if (!excludeProps || excludeProps.indexOf(key) === -1) {
             const thisVal = item[key];
             // Value is a string and NOT a UTC date
-            if (typeof thisVal === 'string' &&
+            if (
+              typeof thisVal === 'string' &&
               !thisVal.match(isoDateRegex) &&
-              thisVal.toLowerCase().indexOf(lQuery) !== -1) {
+              thisVal.toLowerCase().indexOf(lQuery) !== -1
+            ) {
               return true;
             }
             // Value is a Date object or UTC string
-            else if ((thisVal instanceof Date || thisVal.toString().match(isoDateRegex)) &&
-              this.datePipe.transform(thisVal, dateF).toLowerCase().indexOf(lQuery) !== -1) {
+            else if (
+              (thisVal instanceof Date ||
+                thisVal.toString().match(isoDateRegex)) &&
+              this.datePipe
+                .transform(thisVal, dateF)
+                .toLowerCase()
+                .indexOf(lQuery) !== -1
+            ) {
               return true;
             }
           }
@@ -67,7 +83,7 @@ export class FilterSortService {
    * @memberof FilterSortService
    */
   noSearchResults(arr: any[], query: string): boolean {
-    return !!(!arr.length && query)
+    return !!(!arr.length && query);
   }
 
   /**
@@ -90,5 +106,23 @@ export class FilterSortService {
       return !reverse ? dateA - dateB : dateB - dateA;
     });
     return sortedArray;
+  }
+
+  /* return only items with specific key/value pair */
+  filter(array: any[], property: string, value: any) {
+    if (!property || value === undefined || !this._objArrayCheck(array)) {
+      return array;
+    }
+    const filteredArray = array.filter(item => {
+      for (const key in item) {
+        if (item.hasOwnProperty(key)) {
+          if (key === property && item[key] === value) {
+            return true;
+          }
+        }
+      }
+    });
+
+    return filteredArray;
   }
 }

@@ -5,7 +5,6 @@ import { BehaviorSubject } from 'rxjs';
 import { AUTH_CONFIG } from './auth.config';
 import { ENV } from '../core/env.config';
 
-
 @Injectable()
 export class AuthService {
   // create Auth0 web auth instance
@@ -47,7 +46,7 @@ export class AuthService {
       } else {
         this._clearExpiration();
       }
-    })
+    });
   }
 
   private _clearExpiration() {
@@ -62,15 +61,14 @@ export class AuthService {
       if (profile) {
         this._redirect();
         this._setSession(authResult, profile);
-      }
-      else if (err) {
+      } else if (err) {
         console.error(`Error retrieving profile:${err.error}`);
       }
-    })
+    });
   }
 
   private _setSession(authResult, profile?) {
-    this.expiresAt = (authResult.expiresIn * 1000) + Date.now();
+    this.expiresAt = authResult.expiresIn * 1000 + Date.now();
     // store expiration in local storage to access in constructor
     localStorage.setItem('expires_at', JSON.stringify(this.expiresAt));
     this.accessToken = authResult.accessToken;
@@ -83,7 +81,6 @@ export class AuthService {
     //update login status in loggedIn$ stream
     this.setLoggedIn(true);
     this.loggingIn = false;
-
   }
 
   private _checkAdmin(profile) {
@@ -116,7 +113,7 @@ export class AuthService {
     this._auth0.logout({
       clientId: AUTH_CONFIG.CLIENT_ID,
       returnTo: ENV.BASE_URI
-    })
+    });
   }
   /**
    * handle the authentication information
@@ -133,14 +130,23 @@ export class AuthService {
         this.router.navigate(['/']);
         console.error(`Error authenticating: ${err.error}`);
       }
-    })
+    });
   }
   private _redirect() {
-    const redirect = decodeURI(localStorage.getItem('authRedirect'));
-    const navArr = [redirect || '/'];
-
-    this.router.navigate(navArr);
-    //
+    // Redirect with or without 'tab' query parameter
+    // Note: does not support additional params besides 'tab'
+    const fullRedirect = decodeURI(localStorage.getItem('authRedirect'));
+    const redirectArr = fullRedirect.split('?tab=');
+    const navArr = [redirectArr[0] || '/'];
+    const tabObj = redirectArr[1]
+      ? { queryParams: { tab: redirectArr[1] } }
+      : null;
+    if (!tabObj) {
+      this.router.navigate(navArr);
+    } else {
+      this.router.navigate(navArr, tabObj);
+    }
+    // Redirection completed; clear redirect from storage
     this._clearRedirect();
   }
   private _clearRedirect() {

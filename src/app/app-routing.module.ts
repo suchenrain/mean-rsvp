@@ -4,8 +4,8 @@ import { AdminGuard } from './auth/admin.guard';
 import { AuthGuard } from './auth/auth.guard';
 import { AdminComponent } from './pages/admin/admin.component';
 import { CallbackComponent } from './pages/callback/callback.component';
+import { EventComponent } from './pages/event/event.component';
 import { HomeComponent } from './pages/home/home.component';
-
 
 const routes: Routes = [
   {
@@ -13,11 +13,17 @@ const routes: Routes = [
     component: HomeComponent
   },
   {
+    path: 'callback',
+    component: CallbackComponent
+  },
+  {
+    path: 'event/:id',
+    component: EventComponent,
+    canActivate: [AuthGuard]
+  },
+  {
     path: 'admin',
-    canActivate: [
-      AuthGuard,
-      AdminGuard
-    ],
+    canActivate: [AuthGuard, AdminGuard],
     children: [
       {
         path: '',
@@ -25,14 +31,17 @@ const routes: Routes = [
       }
     ]
   },
+
   {
-    path: 'callback',
-    component: CallbackComponent
+    path: '**',
+    redirectTo: '',
+    pathMatch: 'full'
   }
 ];
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
+  exports: [RouterModule],
+  providers: [AuthGuard, AdminGuard]
 })
-export class AppRoutingModule { }
+export class AppRoutingModule {}

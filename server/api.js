@@ -22,7 +22,7 @@ module.exports = function (app, config) {
       cache: true,
       rateLimit: true,
       jwksRequestsPerMinute: 5,
-      jwksUri: `https://${config.AUTH0_DOMAIN}/.well-know/jwks.json`
+      jwksUri: `https://${config.AUTH0_DOMAIN}/.well-known/jwks.json`
     }),
     audience: config.AUTH0_API_AUDIENCE,
     issuer: `https://${config.AUTH0_DOMAIN}/`,
@@ -121,7 +121,7 @@ module.exports = function (app, config) {
 
   // GET RSVPs by event ID
   app.get('/api/event/:eventId/rsvps', jwtCheck, (req, res) => {
-    rsvp.find({
+    Rsvp.find({
       eventId: req.params.eventId
     }, (err, rsvps) => {
       let resvpsArr = [];
@@ -137,6 +137,69 @@ module.exports = function (app, config) {
         })
       }
       res.send(resvpsArr);
+    })
+  })
+
+  // POST a newe RSVP
+  app.post('/api/rsvp/new', jwtCheck, (req, res) => {
+    Rsvp.findOne({
+      eventId: req.body.eventId,
+      userid: req.body.userId
+    }, (err, existingRsvp) => {
+      if (err) {
+        return res.status(500)
+          .send({ message: err.message })
+      }
+      if (existingRsvp) {
+        return res.status(409)
+          .send({ message: 'You have already RSVPed to this event.' })
+      }
+
+      const rsvp = new Rsvp({
+        userId: req.body.userId,
+        name: req.body.name,
+        eventId: req.body.eventId,
+        attending: req.body.attending,
+        guests: req.body.guests,
+        comments: req.body.comments
+      });
+      rsvp.save((err) => {
+        if (err) {
+          return res.status(500)
+            .send({ message: err.message })
+        }
+        res.send(rsvp);
+      })
+    })
+  })
+
+  //PUT (edit) an existing RSVP
+  app.put('/api/rsvp/:id', jwtCheck, (req, res) => {
+    Rsvp.findById(req.params.id, (err, rsvp) => {
+      if (err) {
+        return res.status(500)
+          .send({ message: err.message })
+      }
+      if (!rsvp) {
+        return res.status(404)
+          .send({ message: 'RSVP not found' })
+      }
+      if (rsvp.userId !== req.user.sub) {
+        return res.status(401)
+          .send({ message: 'You cannot edit someone else\' RSVP' })
+      }
+      rsvp.name = req.body.name;
+      rsvp.attending = req.body.attending;
+      rsvp.guests = req.body.guests;
+      rsvp.comments = req.body.comments;
+
+      rsvp.save(err => {
+        if (err) {
+          return res.status(500)
+            .send({ message: err.message })
+        }
+        res.send(rsvp);
+      })
     })
   })
 
