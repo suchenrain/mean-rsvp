@@ -1,0 +1,16 @@
+<h1 class="text-center">{{pageTitle}}</h1>
+
+<app-loading *ngIf="loading"></app-loading>
+
+<ng-template [ngIf]="utils.isLoaded(loading)">
+    <ng-template [ngIf]="event">
+        <!--Event Form-->
+        <app-event-form [event]="event"></app-event-form>
+    </ng-template>
+    <!--Error loading event-->
+    <p class="alert alert-danger"
+       *ngIf="error">
+        <strong>Error:</strong>Event data could not be retrived. View<a class="alert-link"
+           routerLink="/admin">Admin Events</a>
+    </p>
+</ng-template>

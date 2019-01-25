@@ -1,7 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { NgModule } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule, Title } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AppRoutingModule } from './app-routing.module';
@@ -21,6 +21,9 @@ import { RsvpComponent } from './pages/event/rsvp/rsvp.component';
 import { HomeComponent } from './pages/home/home.component';
 import { RsvpFormComponent } from './pages/event/rsvp/rsvp-form/rsvp-form.component';
 import { SubmittingComponent } from './core/forms/submitting.component';
+import { CreateEventComponent } from './pages/admin/create-event/create-event.component';
+import { UpdateEventComponent } from './pages/admin/update-event/update-event.component';
+import { EventFormComponent } from './pages/admin/event-form/event-form.component';
 
 @NgModule({
   declarations: [
@@ -35,14 +38,18 @@ import { SubmittingComponent } from './core/forms/submitting.component';
     EventDetailComponent,
     RsvpComponent,
     RsvpFormComponent,
-    SubmittingComponent
+    SubmittingComponent,
+    CreateEventComponent,
+    UpdateEventComponent,
+    EventFormComponent
   ],
   imports: [
     BrowserModule,
     FormsModule,
     AppRoutingModule,
     HttpClientModule,
-    BrowserAnimationsModule
+    BrowserAnimationsModule,
+    ReactiveFormsModule
   ],
   providers: [
     Title,

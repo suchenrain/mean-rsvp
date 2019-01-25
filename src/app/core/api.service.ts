@@ -5,7 +5,7 @@ import {
 } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, throwError as ObservableThrowError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, retryWhen } from 'rxjs/operators';
 import { AuthService } from '../auth/auth.service';
 import { ENV } from './env.config';
 import { EventModel } from './models/event.model';
@@ -69,6 +69,27 @@ export class ApiService {
   editRsvp$(id: string, rsvp: RsvpModel): Observable<RsvpModel> {
     return this.http
       .put(`${ENV.BASE_API}rsvp/${id}`, rsvp, this._setAuthHeader)
+      .pipe(catchError(err => this._handleError(err)));
+  }
+
+  // POST new event(admin only)
+  postEvent$(event: EventModel): Observable<EventModel> {
+    return this.http
+      .post<EventModel>(`${ENV.BASE_API}event/new`, event, this._setAuthHeader)
+      .pipe(catchError(err => this._handleError(err)));
+  }
+
+  // PUT existing event admin only
+  editEvent$(id: string, event: EventModel): Observable<EventModel> {
+    return this.http
+      .put<EventModel>(`${ENV.BASE_API}event/${id}`, event, this._setAuthHeader)
+      .pipe(catchError(err => this._handleError(err)));
+  }
+
+  // DELETE existing event and all associated RSVPs (admin only)
+  deleteEvent$(id: string): Observable<any> {
+    return this.http
+      .delete(`${ENV.BASE_API}event/${id}`, this._setAuthHeader)
       .pipe(catchError(err => this._handleError(err)));
   }
 
