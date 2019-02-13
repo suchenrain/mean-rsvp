@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import * as auth0 from 'auth0-js';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Subscription, of, timer } from 'rxjs';
 import { AUTH_CONFIG } from './auth.config';
 import { ENV } from '../core/env.config';
+import { mergeMap } from 'rxjs/operators';
 
 @Injectable()
 export class AuthService {
@@ -25,6 +26,9 @@ export class AuthService {
   loggingIn: boolean;
 
   isAdmin: boolean;
+
+  // subscribe to token expiration stream
+  refreshSub: Subscription;
 
   get tokenValid(): boolean {
     // check if current time is past access token's expiration
@@ -59,8 +63,8 @@ export class AuthService {
     //use access token to retrieve user's profile and set session
     this._auth0.client.userInfo(authResult.accessToken, (err, profile) => {
       if (profile) {
-        this._redirect();
         this._setSession(authResult, profile);
+        this._redirect();
       } else if (err) {
         console.error(`Error retrieving profile:${err.error}`);
       }
@@ -81,6 +85,39 @@ export class AuthService {
     //update login status in loggedIn$ stream
     this.setLoggedIn(true);
     this.loggingIn = false;
+
+    // Schedule access token renewal
+    this.scheduleRenewal();
+  }
+
+  scheduleRenewal() {
+    // if last token is expired, do nothing
+    if (!this.tokenValid) {
+      return;
+    }
+    // unsubscribe from previous expiration observable
+    this.unscheduleRenewal();
+
+    // create and subscribe to expiration observable
+    const expiresIn$ = of(this.expiresAt).pipe(
+      mergeMap(expires => {
+        const now = Date.now();
+
+        //use timer to track delay until expiration
+        // to run the refresh at the proper time
+        return timer(Math.max(1, expires - now));
+      })
+    );
+
+    this.refreshSub = expiresIn$.subscribe(() => {
+      this.renewToken();
+      this.scheduleRenewal();
+    });
+  }
+  unscheduleRenewal() {
+    if (this.refreshSub) {
+      this.refreshSub.unsubscribe();
+    }
   }
 
   private _checkAdmin(profile) {

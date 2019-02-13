@@ -32,6 +32,9 @@
                    routerLinkActive="active"
                    [routerLinkActiveOptions]="{ exact: true }">Event</a>
             </li>
+            <li><a *ngIf="auth.loggedIn"
+                   routerLink="/my-rsvps"
+                   routerLinkActive="active">My RSVPs</a></li>
             <li>
                 <a *ngIf="auth.loggedIn && auth.isAdmin"
                    routerLink="/admin"

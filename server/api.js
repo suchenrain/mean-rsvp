@@ -222,7 +222,7 @@ module.exports = function (app, config) {
         title: req.body.title,
         location: req.body.location,
         startDatetime: req.body.startDatetime,
-        endDetetime: req.body.endDetetime,
+        endDatetime: req.body.endDatetime,
         description: req.body.description,
         viewPublic: req.body.viewPublic
       });
@@ -249,18 +249,19 @@ module.exports = function (app, config) {
       event.title = req.body.title;
       event.location = req.body.location;
       event.startDatetime = req.body.startDatetime;
-      event.endDetetime = req.body.endDetetime;
+      event.endDatetime = req.body.endDatetime;
       event.viewPublic = req.body.viewPublic;
       event.description = req.body.description;
+
+      event.save(err => {
+        if (err) {
+          return res.status(500)
+            .send({ message: err.message })
+        }
+        res.send(event);
+      })
     })
 
-    event.save(err => {
-      if (err) {
-        return res.status(500)
-          .send({ message: err.message })
-      }
-      res.send(event);
-    })
   })
   // DELETE an event and all associated RSVPs
   app.delete('/api/event/:id', jwtCheck, adminCheck, (req, res) => {
@@ -288,6 +289,39 @@ module.exports = function (app, config) {
             .send({ message: 'Event and RSVPs successfully deleted.' })
         })
       })
+    })
+  })
+
+  // GET list of upcoming events user has RSVPed to
+  app.get('/api/events/:userId', jwtCheck, (req, res) => {
+    Rsvp.find({ userId: req.params.userId }, 'eventId', (err, rsvps) => {
+      const _eventIdsArr = rsvps.map(rsvp => rsvp.eventId);
+      const _rsvpEventsProjection = 'title startDatetime endDatetime';
+      let eventsArr = [];
+
+      if (err) {
+        return res.status(500)
+          .send({ message: err.message })
+      }
+      if (rsvps) {
+        Event.find({
+            _id: { $in: _eventIdsArr },
+            startDatetime: { $gte: new Date() }
+          },
+          _rsvpEventsProjection,
+          (err, events) => {
+            if (err) {
+              return res.status(500)
+                .send({ message: err.message });
+            }
+            if (events) {
+              events.forEach(event => {
+                eventsArr.push(event);
+              })
+            }
+            res.send(eventsArr);
+          })
+      }
     })
   })
 };
