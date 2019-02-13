@@ -28,7 +28,7 @@ export class AuthService {
   isAdmin: boolean;
 
   // subscribe to token expiration stream
-  refreshSub: Subscription;
+  logoutSub: Subscription;
 
   get tokenValid(): boolean {
     // check if current time is past access token's expiration
@@ -86,17 +86,17 @@ export class AuthService {
     this.setLoggedIn(true);
     this.loggingIn = false;
 
-    // Schedule access token renewal
-    this.scheduleRenewal();
+    // Schedule log out
+    this.scheduleLogout();
   }
 
-  scheduleRenewal() {
+  scheduleLogout() {
     // if last token is expired, do nothing
     if (!this.tokenValid) {
       return;
     }
     // unsubscribe from previous expiration observable
-    this.unscheduleRenewal();
+    this.unscheduleLogout();
 
     // create and subscribe to expiration observable
     const expiresIn$ = of(this.expiresAt).pipe(
@@ -104,19 +104,18 @@ export class AuthService {
         const now = Date.now();
 
         //use timer to track delay until expiration
-        // to run the refresh at the proper time
+        // to log out at the proper time
         return timer(Math.max(1, expires - now));
       })
     );
 
-    this.refreshSub = expiresIn$.subscribe(() => {
-      this.renewToken();
-      this.scheduleRenewal();
+    this.logoutSub = expiresIn$.subscribe(() => {
+      this.logout();
     });
   }
-  unscheduleRenewal() {
-    if (this.refreshSub) {
-      this.refreshSub.unsubscribe();
+  unscheduleLogout() {
+    if (this.logoutSub) {
+      this.logoutSub.unsubscribe();
     }
   }
 
@@ -146,6 +145,7 @@ export class AuthService {
     // remove data from localStorage
     this._clearExpiration();
     this._clearRedirect();
+    this.unscheduleLogout();
     // end auth0 authentication session
     this._auth0.logout({
       clientId: AUTH_CONFIG.CLIENT_ID,
