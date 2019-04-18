@@ -21,12 +21,11 @@ const config = require('./server/config');
  */
 
 mongoose.connect(
-  config.MONGO_URI,
-  { useNewUrlParser: true }
+  config.MONGO_URI, { useNewUrlParser: true }
 );
 const monDb = mongoose.connection;
 
-monDb.on('error', function() {
+monDb.on('error', function () {
   console.error('MongoDB Connection Error. Please make sure that', config.MONGO_URI, 'is running');
 });
 
@@ -62,12 +61,13 @@ if (process.env.NODE_ENV !== 'dev') {
  | Routes
  |--------------------------------------
  */
+// register routes
 require('./server/api')(app, config);
 
 // Pass routing to Angular app
 // Don't run in dev
 if (process.env.NODE_ENV !== 'dev') {
-  app.get('*', function(req, res) {
+  app.get('*', function (req, res) {
     res.sendFile(path.join(__dirname, '/dist/index.html'));
   });
 }
